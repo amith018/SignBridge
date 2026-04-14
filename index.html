@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>SignBridge</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/components.css">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%236C63FF' rx='100'/%3E%3Ctext x='256' y='320' font-size='200' fill='white' text-anchor='middle' font-family='sans-serif'%3E🤟%3C/text%3E%3C/svg%3E">
+  
+  <!-- MediaPipe Hands -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <!-- TensorFlow ML & KNN Classifier -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/knn-classifier" crossorigin="anonymous"></script>
+
+  <!-- Three.js 3D Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <div id="app">
+    
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+    
+    <!-- ========================================== -->
+    <!-- 1. ONBOARDING SCREEN                       -->
+    <!-- ========================================== -->
+    <div id="screen-onboarding" class="screen">
+      <!-- Page 1 -->
+      <div class="onboarding-page anim-fade-up" style="display:flex; flex-direction:column; flex:1;">
+        <div class="onboarding-hero">
+          <div class="orb orb-1"></div>
+          <div class="orb orb-2" style="background:var(--color-primary);"></div>
+          <div style="font-size: 140px; text-shadow: var(--shadow-xl); animation: float 3s infinite ease-in-out;">🤟</div>
+        </div>
+        <div class="onboarding-body">
+          <h2 class="onboarding-title">Welcome to<br><span class="gradient-text">SignBridge</span></h2>
+          <p class="onboarding-desc">The seamless way to communicate across the silent divide.</p>
+        </div>
+      </div>
+      
+      <!-- Page 2 -->
+      <div class="onboarding-page" style="display:none; flex-direction:column; flex:1;">
+        <div class="onboarding-hero">
+          <div class="orb orb-1" style="background:var(--color-secondary);"></div>
+          <div class="orb orb-3"></div>
+          <div style="font-size: 120px; animation: float 3s infinite ease-in-out;">📷</div>
+        </div>
+        <div class="onboarding-body">
+          <h2 class="onboarding-title">AI Sign<br>Detection</h2>
+          <p class="onboarding-desc">Point your camera to translate sign language into text & speech in real time.</p>
+        </div>
+      </div>
+      
+      <!-- Page 3 -->
+      <div class="onboarding-page" style="display:none; flex-direction:column; flex:1;">
+        <div class="onboarding-hero">
+          <div class="orb orb-1" style="background:var(--color-accent);"></div>
+          <div class="orb orb-2"></div>
+          <div style="font-size: 120px; animation: float 3s infinite ease-in-out;">🎙️</div>
+        </div>
+        <div class="onboarding-body">
+          <h2 class="onboarding-title">Speech to<br>Sign</h2>
+          <p class="onboarding-desc">Speak naturally and our animated avatar will sign it back.</p>
+        </div>
+      </div>
+
+      <div style="padding: 0 var(--space-xl) var(--space-xl);">
+        <div class="onboarding-dots">
+          <div class="onboarding-dot active"></div>
+          <div class="onboarding-dot"></div>
+          <div class="onboarding-dot"></div>
+        </div>
+        <div class="onboarding-nav">
+          <span id="ob-skip" class="onboarding-skip interactive">Skip</span>
+          <button id="ob-next" class="btn btn-primary" style="padding: 12px 32px;">Next →</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 2. HOME SCREEN                             -->
+    <!-- ========================================== -->
+    <div id="screen-home" class="screen">
+      <div class="status-bar">
+        <span class="status-time">9:41</span>
+        <div class="status-icons">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M15.67 4H14V2h-4v2H8.33C7.6 4 7 4.6 7 5.33v15.33C7 21.4 7.6 22 8.33 22h7.33c.74 0 1.34-.6 1.34-1.33V5.33C17 4.6 16.4 4 15.67 4z"/></svg>
+        </div>
+      </div>
+
+      <div class="home-header anim-fade-down delay-1">
+        <div class="home-greeting">Good morning,</div>
+        <div class="home-title">Ready to <span>connect?</span></div>
+        <div id="home-avatar" class="home-avatar interactive">S</div>
+      </div>
+
+      <div class="content-padded-bottom" style="display:flex; flex-direction:column; gap:var(--space-xl); margin-top:var(--space-md);">
+        
+        <!-- Featured Banner -->
+        <div class="featured-banner anim-scale-in delay-2" data-goto="camera">
+          <div class="orb"></div>
+          <div class="featured-banner-text">
+            <h3 class="featured-banner-title">Start Translating</h3>
+            <div class="featured-banner-sub">Tap to open AI camera</div>
+          </div>
+          <div class="featured-banner-icon">🤟</div>
+        </div>
+
+        <!-- Mode Grid -->
+        <div class="mode-grid">
+          <div class="mode-card anim-fade-up delay-3" data-goto="camera" style="--card-color:var(--color-primary)">
+            <div class="mode-icon" style="background:var(--color-primary-alpha); color:var(--color-primary);">📷</div>
+            <div class="mode-card-title">Sign to<br>Text</div>
+            <div class="mode-card-desc">Detect signs via camera</div>
+          </div>
+          
+          <div class="mode-card anim-fade-up delay-4" data-goto="speech" style="--card-color:var(--color-secondary)">
+            <div class="mode-icon" style="background:var(--bg-secondary); color:var(--color-secondary-dark);">🎤</div>
+            <div class="mode-card-title">Speech to<br>Sign</div>
+            <div class="mode-card-desc">Avatar translates speech</div>
+          </div>
+          
+          <div class="mode-card mode-card-wide anim-fade-up delay-5" data-goto="dual" style="--card-color:var(--color-warning)">
+            <div class="mode-icon" style="background:rgba(255,179,71,0.15); color:var(--color-warning);">🔀</div>
+            <div style="flex:1;">
+              <div class="mode-card-title">Dual Mode</div>
+              <div class="mode-card-desc">Real-time split screen convo</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div>
+          <div class="section-title" style="padding:0 var(--space-lg); margin-bottom:var(--space-sm);">Quick Actions</div>
+          <div class="quick-actions anim-fade-left delay-6">
+            <div class="quick-action-btn" data-goto="emergency">
+              <div class="quick-action-icon" style="color:var(--color-accent); background:rgba(255,107,107,0.1);">🆘</div>
+              <span class="quick-action-label">Emergency</span>
+            </div>
+            <div class="quick-action-btn" data-goto="history">
+              <div class="quick-action-icon" style="color:var(--color-primary); background:var(--color-primary-alpha);">📋</div>
+              <span class="quick-action-label">History</span>
+            </div>
+            <div class="quick-action-btn" id="qa-settings" data-goto="settings">
+              <div class="quick-action-icon" style="color:var(--text-secondary); background:var(--bg-secondary);">⚙️</div>
+              <span class="quick-action-label">Settings</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 3. CAMERA SCREEN (SIGN -> TEXT)            -->
+    <!-- ========================================== -->
+    <div id="screen-camera" class="screen">
+      <div class="camera-container">
+        <video id="cam-video" class="camera-video" autoplay playsinline muted></video>
+        <canvas id="cam-canvas" class="camera-canvas"></canvas>
+        <div class="scan-line"></div>
+        
+        <div class="hand-zone"></div>
+        
+        <div class="camera-overlay">
+          <div class="camera-top-bar">
+            <div id="cam-back" class="header-action"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+            <div class="camera-status">
+              <div class="pulse-dot"></div>
+              <span id="cam-status-text">Starting...</span>
+            </div>
+            <div id="cam-flip-btn" class="header-action"><svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg></div>
+          </div>
+          
+          <div class="camera-controls">
+            <button class="camera-btn" id="cam-clear-btn" title="Clear">🗑️</button>
+            <button class="camera-btn camera-btn-main" id="cam-toggle-btn">⏸</button>
+            <button class="camera-btn" id="cam-speak-btn" title="Speak All">🔊</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="recognition-panel anim-fade-up">
+        <div class="recognition-label">
+          <span>Recognized Text</span>
+          <span class="badge badge-primary">English</span>
+        </div>
+        <div id="recognized-text" class="recognition-text"></div>
+        <div class="confidence-bar">
+          <div id="confidence-fill" class="confidence-fill" style="width:0%"></div>
+        </div>
+      </div>
+      
+      <div class="section-title" style="padding:0 var(--space-lg); margin:var(--space-md) 0 var(--space-sm);">Recent Signs</div>
+      <div id="sign-log" class="sign-log content-padded-bottom stagger-children">
+        <!-- Log items dynamically injected -->
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 4. SPEECH TO SIGN SCREEN                   -->
+    <!-- ========================================== -->
+    <div id="screen-speech" class="screen">
+      <div class="page-header">
+        <div id="speech-back" class="header-action"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+        <h2>Speech to Sign</h2>
+        <div id="speech-clear-btn" class="header-action" title="Clear">🗑️</div>
+      </div>
+      
+      <div class="speech-container content-padded-bottom">
+        <div class="avatar-display anim-fade-down delay-1">
+          <div class="avatar-label">Virtual Translator</div>
+          <div class="avatar-canvas-wrap">
+            <svg id="speech-avatar-svg" class="avatar-svg" viewBox="0 0 200 200"></svg>
+          </div>
+          <div id="speech-sign-name" class="avatar-sign-name type-reveal"></div>
+        </div>
+        
+        <div id="speech-transcript-box" class="speech-transcript anim-fade-up delay-2">
+          <div class="speech-transcript-label">Live Transcript</div>
+          <div id="speech-transcript-text" class="speech-transcript-text"><span class="speech-placeholder">Your speech will appear here...</span></div>
+          <div id="speech-interim" class="speech-interim"></div>
+          
+          <div class="speech-waveform" style="display:flex; align-items:center; gap:8px;">
+            <div id="speech-waveform" class="waveform paused">
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+            <button id="speech-tts-btn" style="background:var(--bg-secondary); border-radius:50%; width:32px; height:32px;">🔊</button>
+          </div>
+        </div>
+        
+        <div class="mic-btn-container anim-scale-in delay-3" style="margin-top:auto;">
+          <button id="speech-mic-btn" class="mic-btn">
+            <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+          </button>
+          <div id="mic-hint" class="mic-hint">Tap to speak</div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 5. DUAL MODE SCREEN                        -->
+    <!-- ========================================== -->
+    <div id="screen-dual" class="screen">
+      <div class="dual-container">
+        <!-- Top Half (Camera -> Sign detection) -->
+        <div class="dual-top">
+          <video id="dual-video" autoplay playsinline muted></video>
+          <div class="dual-top-overlay">
+            <div id="dual-sign-text" class="dual-sign-text">Waiting for signs...</div>
+          </div>
+          <div id="dual-back" class="header-action" style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.5); color:white;"><svg viewBox="0 0 24 24"><path fill="white" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+          <div id="dual-toggle-cam" class="header-action" style="position:absolute; top:20px; right:20px; background:rgba(0,0,0,0.5);"><svg viewBox="0 0 24 24"><path fill="white" d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8z"/></svg></div>
+        </div>
+        
+        <!-- Divider -->
+        <div class="dual-divider">
+          <span class="dual-divider-label">Sign</span>
+          <div class="dual-toggle-btn">🔀 DUAL</div>
+          <span class="dual-divider-label">Speech</span>
+        </div>
+        
+        <!-- Bottom Half (Speech -> Sign Avatar) -->
+        <div class="dual-bottom content-padded-bottom">
+          <div class="dual-avatar-mini anim-fade-up">
+            <svg id="dual-avatar-svg" style="width:120px; height:120px;" viewBox="0 0 200 200"></svg>
+            <div id="dual-sign-name" style="font-weight:bold; color:var(--color-primary); margin-left:16px; font-size:18px;"></div>
+          </div>
+          
+          <div class="dual-mic-row anim-fade-up delay-1">
+            <button id="dual-mic-btn" class="btn-icon" style="background:var(--color-secondary); color:white;">
+              <svg style="width:24px; height:24px;" viewBox="0 0 24 24"><path fill="currentColor" d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+            </button>
+            <div id="dual-transcript" class="dual-transcript">Tap mic to speak...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 6. HISTORY SCREEN                          -->
+    <!-- ========================================== -->
+    <div id="screen-history" class="screen">
+      <div class="page-header">
+        <div id="history-back" class="header-action"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+        <h2>History</h2>
+        <div id="history-clear-btn" class="header-action" title="Clear All">🗑️</div>
+      </div>
+      
+      <div class="history-search anim-fade-down delay-1">
+        <span class="history-search-icon">🔍</span>
+        <input type="text" id="history-search" placeholder="Search conversations...">
+      </div>
+      
+      <div id="history-list" class="history-list content-padded-bottom stagger-children">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 7. SETTINGS SCREEN                         -->
+    <!-- ========================================== -->
+    <div id="screen-settings" class="screen">
+      <div class="page-header">
+        <div id="settings-back" class="header-action"><svg viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg></div>
+        <h2>Settings</h2>
+        <div style="width:40px;"></div>
+      </div>
+
+      <div class="content content-padded-bottom">
+        
+        <div class="profile-hero anim-scale-in" style="border-radius:24px; margin-bottom:24px;">
+          <div class="profile-avatar">S</div>
+          <div>
+            <div class="profile-name">SignBridge User</div>
+            <div class="profile-email">Free Plan</div>
+          </div>
+        </div>
+
+        <div class="settings-section anim-fade-up delay-1">
+          <div class="settings-section-title">Preferences</div>
+          
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-icon" style="background:#EEEEFF; color:#6C63FF;">🌙</div>
+              <div class="settings-row-text">
+                <div id="theme-label" class="settings-row-label">Light Mode</div>
+              </div>
+            </div>
+            <div class="settings-row-right">
+              <div class="toggle-wrap"><div id="theme-toggle" class="toggle"><div class="toggle-thumb"></div></div></div>
+            </div>
+          </div>
+
+          <div class="settings-row">
+             <div class="settings-row-left">
+              <div class="settings-icon" style="background:rgba(0,212,170,0.15); color:#00A882;">🔊</div>
+              <div class="settings-row-text">
+                <div class="settings-row-label">Voice Output (TTS)</div>
+                <div class="settings-row-sub">Read detected signs aloud</div>
+              </div>
+            </div>
+            <div class="settings-row-right">
+               <div class="toggle-wrap"><div id="voice-toggle" class="toggle on"><div class="toggle-thumb"></div></div></div>
+            </div>
+          </div>
+          
+          <div class="settings-row">
+             <div class="settings-row-left">
+              <div class="settings-icon" style="background:rgba(255,179,71,0.15); color:#FFB347;">💾</div>
+              <div class="settings-row-text">
+                <div class="settings-row-label">Save History</div>
+                <div class="settings-row-sub">Keep local record of conversations</div>
+              </div>
+            </div>
+            <div class="settings-row-right">
+               <div class="toggle-wrap"><div id="history-toggle" class="toggle on"><div class="toggle-thumb"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section anim-fade-up delay-2">
+          <div class="settings-section-title">Language & Text</div>
+          <div id="lang-picker" class="lang-picker">
+            <div class="lang-chip selected" data-lang="en">🇬🇧 English</div>
+            <div class="lang-chip" data-lang="es">🇪🇸 Español</div>
+            <div class="lang-chip" data-lang="fr">🇫🇷 Français</div>
+            <div class="lang-chip" data-lang="hi">🇮🇳 हिन्दी</div>
+            <div class="lang-chip" data-lang="ja">🇯🇵 日本語</div>
+          </div>
+          <div class="settings-section-title">Avatar Style</div>
+          <div id="avatar-style-picker" class="lang-picker">
+            <div class="lang-chip selected" data-style="vector">Vector / Emoji</div>
+            <div class="lang-chip" data-style="realistic">Realistic 3D</div>
+            <div class="lang-chip" data-style="anime">Anime Style</div>
+            <div class="lang-chip" data-style="generative3d">Generative 3D</div>
+          </div>
+          <div class="divider" style="margin:var(--space-md) 0;"></div>
+          
+          <div style="padding:0 var(--space-md);">
+            <div class="settings-row-label">Text Size</div>
+          </div>
+          <div id="font-size-options" class="font-size-slider">
+            <div class="font-size-options">
+              <div class="font-size-opt" data-size="sm" style="font-size:12px;">A</div>
+              <div class="font-size-opt selected" data-size="md" style="font-size:14px;">A</div>
+              <div class="font-size-opt" data-size="lg" style="font-size:18px;">A</div>
+              <div class="font-size-opt" data-size="xl" style="font-size:22px;">A</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-section anim-fade-up delay-3">
+          <div class="settings-section-title">Accessibility</div>
+          <div class="settings-row">
+            <div class="settings-row-left">
+              <div class="settings-icon" style="background:#EEE; color:#333;">👁️</div>
+              <div class="settings-row-text">
+                <div class="settings-row-label">High Contrast</div>
+              </div>
+            </div>
+            <div class="settings-row-right">
+               <div class="toggle-wrap"><div id="contrast-toggle" class="toggle"><div class="toggle-thumb"></div></div></div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="settings-section anim-fade-up delay-4">
+          <div class="settings-row" id="clear-data-btn">
+            <div class="settings-row-left">
+              <div class="settings-icon" style="background:rgba(255,107,107,0.1); color:#FF6B6B;">🗑️</div>
+              <div class="settings-row-text">
+                <div class="settings-row-label" style="color:#FF6B6B;">Clear All Data</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div style="text-align:center; padding:var(--space-xl); color:var(--text-muted); font-size:12px;">
+          SignBridge v1.0.0<br>Privacy Policy • Terms of Service<br>
+          <button id="rate-app-btn" class="btn btn-ghost btn-sm" style="margin-top:12px;">⭐ Rate App</button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- 8. EMERGENCY SCREEN (Full Screen)          -->
+    <!-- ========================================== -->
+    <div id="screen-emergency" class="screen" style="z-index:900;">
+      <div class="emergency-screen-inner">
+        <div class="emergency-header anim-fade-down">
+          <h2>EMERGENCY</h2>
+          <p>Tap a phrase to speak aloud</p>
+        </div>
+        
+        <div id="emergency-grid" class="emergency-grid anim-scale-in delay-1 stagger-children">
+          <!-- Rendered by JS -->
+        </div>
+        
+        <div id="emergency-exit" class="emergency-exit anim-fade-up delay-4">
+          Exit Emergency Mode
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ========================================== -->
+    <!-- ASSISTANT OVERLAY GLOBAL                   -->
+    <!-- ========================================== -->
+    <div id="assistant-overlay" class="assistant-overlay">
+      <div id="assistant-close" class="assistant-close">✕</div>
+      <div class="assistant-avatar-ring">
+        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+      </div>
+      <div class="assistant-label">SignBridge Assistant</div>
+      <div id="assistant-status-text" class="assistant-sub">Listening...</div>
+      
+      <div style="width:100%; max-width:320px;">
+        <div style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:12px; letter-spacing:1px;">Try saying:</div>
+        <div class="assistant-commands">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- FAB for Assistant -->
+    <div id="fab-assistant" class="fab-assistant tilt-card">
+      <svg viewBox="0 0 24 24" style="width:28px; height:28px;"><path fill="white" d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- BOTTOM NAVIGATION TABS                     -->
+    <!-- ========================================== -->
+    <div id="bottom-nav" class="bottom-nav">
+      <div id="nav-home" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <span>Home</span>
+      </div>
+      <div id="nav-history" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+        <span>History</span>
+      </div>
+      
+      <!-- Center Main Action -->
+      <div id="nav-camera" class="nav-center-btn" data-goto="camera">
+        <svg viewBox="0 0 24 24"><path d="M4 4h3l2-2h6l2 2h3c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2zm8 3c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 8c-1.65 0-3-1.35-3-3s1.35-3 3-3 3 1.35 3 3-1.35 3-3 3z"/></svg>
+      </div>
+      
+      <div id="nav-dual" class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
+        <span>Dual</span>
+      </div>
+      <div id="nav-settings" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .43-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.49-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+        <span>Settings</span>
+      </div>
+    </div>
+    
+  </div>
+
+  <!-- App Logic -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>

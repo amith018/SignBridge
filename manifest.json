@@ -1,0 +1,16 @@
+{
+  "name": "SignBridge",
+  "short_name": "SignBridge",
+  "description": "Real-time AI Sign Language Translator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#6C63FF",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%236C63FF' rx='100'/%3E%3Ctext x='256' y='320' font-size='200' fill='white' text-anchor='middle' font-family='sans-serif'%3E🤟%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
